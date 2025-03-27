@@ -86,10 +86,6 @@ if exist "%BOOST_INSTALL_DIR%" (
 
 if not exist "%BOOST_SRC_DIR%" (
     if not exist "%BOOST_TEMP_FILE_DIR%" (
-        echo %FILE_N% Retrieving boost.
-        powershell -Command "(New-Object System.Net.WebClient).DownloadFile('%BOOST_REPO%', '%BOOST_TEMP_FILE_DIR%')"
-    )
-    if not exist "%BOOST_TEMP_FILE_DIR%" (
         echo %FILE_N% Using Boost backup
         powershell -Command "(New-Object System.Net.WebClient).DownloadFile('https://carla-releases.s3.us-east-005.backblazeb2.com/Backup/%BOOST_TEMP_FILE%', '%BOOST_TEMP_FILE_DIR%')"
     )
@@ -110,7 +106,7 @@ if not exist "%BOOST_SRC_DIR%" (
 cd "%BOOST_SRC_DIR%"
 if not exist "b2.exe" (
     echo %FILE_N% Generating build...
-    call bootstrap.bat vc141
+    call bootstrap.bat vc143
 )
 
 if %errorlevel% neq 0 goto error_bootstrap
