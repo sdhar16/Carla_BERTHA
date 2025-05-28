@@ -77,5 +77,7 @@ private:
   void SkipPacket(void);
 
   // read the start info structure and check the magic string
-  bool CheckFileInfo(std::stringstream &Info);
+  bool CheckFileInfo(std::ostream &Info);
+
+
 };

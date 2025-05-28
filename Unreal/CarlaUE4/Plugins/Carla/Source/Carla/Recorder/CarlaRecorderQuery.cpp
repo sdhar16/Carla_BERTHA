@@ -37,7 +37,7 @@ inline void CarlaRecorderQuery::SkipPacket(void)
   File.seekg(Header.Size, std::ios::cur);
 }
 
-inline bool CarlaRecorderQuery::CheckFileInfo(std::stringstream &Info)
+inline bool CarlaRecorderQuery::CheckFileInfo(std::ostream &Info)
 {
   // read Info
   RecInfo.Read(File);
@@ -62,30 +62,41 @@ inline bool CarlaRecorderQuery::CheckFileInfo(std::stringstream &Info)
 
 std::string CarlaRecorderQuery::QueryInfo(std::string Filename, bool bShowAll)
 {
-  std::stringstream Info;
+  std::stringstream Info2;
 
+  
   // get the final path + filename
   std::string Filename2 = GetRecorderFilename(Filename);
+
+  std::fstream Info(Filename2 + ".txt", std::ios::out);
+  if (!Info.is_open())
+  {
+    return "Could not create info file: " + Filename2 + ".txt";
+  }
+
 
   // try to open
   File.open(Filename2, std::ios::binary);
   if (!File.is_open())
   {
     Info << "File " << Filename2 << " not found on server\n";
-    return Info.str();
+    Info.close();
+    return Info2.str();
   }
 
   uint16_t i, Total;
   bool bFramePrinted = false;
 
   // lambda for repeating task
-  auto PrintFrame = [this](std::stringstream &Info)
+  auto PrintFrame = [this](std::fstream &Info)
   {
     Info << "Frame " << Frame.Id << " at " << Frame.Elapsed << " seconds\n";
   };
 
-  if (!CheckFileInfo(Info))
-    return Info.str();
+  if (!CheckFileInfo(Info)){
+    Info.close();
+    return Info2.str();
+  }
 
   // parse only frames
   while (File)
@@ -589,8 +600,8 @@ std::string CarlaRecorderQuery::QueryInfo(std::string Filename, bool bShowAll)
   Info << "Duration: " << Frame.Elapsed << " seconds\n";
 
   File.close();
-
-  return Info.str();
+  Info.close();
+  return Info2.str();
 }
 
 std::string CarlaRecorderQuery::QueryCollisions(std::string Filename, char Category1, char Category2)
