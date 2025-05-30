@@ -61,22 +61,7 @@ std::pair<int, FCarlaActor*>CarlaReplayerHelper::TryToCreateReplayerActor(
     }
   }
   else if (SpawnSensors || !ActorDesc.Id.StartsWith("sensor."))
-  {
-    // check if an actor of that type already exist with same id
-    if (Episode->GetActorRegistry().Contains(DesiredId))
-    {
-      auto* CarlaActor = Episode->FindCarlaActor(DesiredId);
-      const FActorDescription *desc = &CarlaActor->GetActorInfo()->Description;
-      if (desc->Id == ActorDesc.Id)
-      {
-        // we don't need to create, actor of same type already exist
-        // relocate
-        FRotator Rot = FRotator::MakeFromEuler(Rotation);
-        FTransform Trans2(Rot, Location, FVector(1, 1, 1));
-        CarlaActor->SetActorGlobalTransform(Trans2);
-        return std::pair<int, FCarlaActor*>(2, CarlaActor);
-      }
-    }
+  { 
     // create the transform
     FRotator Rot = FRotator::MakeFromEuler(Rotation);
     FTransform Trans(Rot, FVector(0, 0, 100000), FVector(1, 1, 1));
@@ -189,6 +174,9 @@ std::pair<int, uint32_t> CarlaReplayerHelper::ProcessReplayerEventAdd(
   // prepare actor description
   ActorDesc.UId = Description.UId;
   ActorDesc.Id = Description.Id;
+
+  auto Definitions = Episode->GetActorDefinitions();
+
   for (const auto &Item : Description.Attributes)
   {
     FActorAttribute Attr;
@@ -199,6 +187,19 @@ std::pair<int, uint32_t> CarlaReplayerHelper::ProcessReplayerEventAdd(
     // check for hero
     if (Item.Id == "role_name" && Item.Value == "hero")
       IsHero = true;
+    if (Item.Id == "role_name" && Item.Value == "ego_vehicle")
+    {
+      std::cout << "Make ego_vehicle invisible" << std::endl;
+      for (int32 i = 0; i < Definitions.Num(); ++i)
+      {
+        if (Definitions[i].Id == "vehicle.lincoln.mkz_2017_invisible")
+        {
+          ActorDesc.Id = Definitions[i].Id;
+          ActorDesc.UId = Definitions[i].UId;
+          break;
+        }
+      }
+    }
   }
 
   // check to ignore Hero or Spectator
